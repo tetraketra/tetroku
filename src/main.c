@@ -80,8 +80,15 @@ int main(void) {
     DISPLAY_WINDOWS(windows, panels, _WINDOWS);
 
     // draw loop
+    int active_window = WO_MM;
+    int window_curs_y = 1;
+    int window_curs_x = 2;
+
     int ch;
     while (true) {
+        wmove(windows[active_window], window_curs_y, window_curs_x);
+        wrefresh(windows[active_window]);
+        
         ch = getch();
         start_time = clock();
 
@@ -92,27 +99,98 @@ int main(void) {
                 endwin();
                 return 0;
                 break;
-            
-            case KEY_RESIZE:
-                endwin();
-                refresh();
-                
-                if (MAXCOLS < total_board_width || MAXLINES < total_board_height) {
-                    wprintw(windows[WO_MM], "Enlarge\nconsole\nwindow!\n");
-                } else {
-                    DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);
-                    // other draw calls
+
+            case KEY_DOWN ... KEY_RIGHT:
+
+                // on game board
+                if (active_window <= WO_BR) {
+                    switch (ch) {
+                        case KEY_DOWN:
+                            if (window_curs_y == 3) {
+                                switch (active_window) {
+                                    case WO_TL: active_window = WO_ML; window_curs_y = 1; break;
+                                    case WO_ML: active_window = WO_BL; window_curs_y = 1; break;
+                                    case WO_BL: break;
+                                    case WO_TM: active_window = WO_MM; window_curs_y = 1; break;
+                                    case WO_MM: active_window = WO_BM; window_curs_y = 1; break;
+                                    case WO_BM: break;
+                                    case WO_TR: active_window = WO_MR; window_curs_y = 1; break;
+                                    case WO_MR: active_window = WO_BR; window_curs_y = 1; break;
+                                    case WO_BR: break;
+                                }
+                            } else {
+                                window_curs_y += 1;
+                            } 
+                            break;
+
+                        case KEY_UP:
+                            if (window_curs_y == 1) {
+                                switch (active_window) {
+                                    case WO_TL: break;
+                                    case WO_ML: active_window = WO_TL; window_curs_y = 3; break;
+                                    case WO_BL: active_window = WO_ML; window_curs_y = 3; break;
+                                    case WO_TM: break;
+                                    case WO_MM: active_window = WO_TM; window_curs_y = 3; break;
+                                    case WO_BM: active_window = WO_MM; window_curs_y = 3; break;
+                                    case WO_TR: break;
+                                    case WO_MR: active_window = WO_TR; window_curs_y = 3; break;
+                                    case WO_BR: active_window = WO_MR; window_curs_y = 3; break;
+                                }
+                            } else {
+                                window_curs_y -= 1;
+                            }
+                            break;
+
+                        case KEY_LEFT:
+                            if (window_curs_x == 2) {
+                                switch (active_window) {
+                                    case WO_TL: break;
+                                    case WO_ML: break;
+                                    case WO_BL: break;
+                                    case WO_TM: active_window = WO_TL; window_curs_x = 6; break;
+                                    case WO_MM: active_window = WO_ML; window_curs_x = 6; break;
+                                    case WO_BM: active_window = WO_BL; window_curs_x = 6; break;
+                                    case WO_TR: active_window = WO_TM; window_curs_x = 6; break;
+                                    case WO_MR: active_window = WO_MM; window_curs_x = 6; break;
+                                    case WO_BR: active_window = WO_BM; window_curs_x = 6; break;
+                                }
+                            } else {
+                                window_curs_x -= 2;
+                            }
+                            break;
+
+                        case KEY_RIGHT:
+                            if (window_curs_x == 6) {
+                                switch (active_window) {
+                                    case WO_TL: active_window = WO_TM; window_curs_x = 2; break;
+                                    case WO_ML: active_window = WO_MM; window_curs_x = 2; break;
+                                    case WO_BL: active_window = WO_BM; window_curs_x = 2; break;
+                                    case WO_TM: active_window = WO_TR; window_curs_x = 2; break;
+                                    case WO_MM: active_window = WO_MR; window_curs_x = 2; break;
+                                    case WO_BM: active_window = WO_BR; window_curs_x = 2; break;
+                                    case WO_TR: break;
+                                    case WO_MR: break;
+                                    case WO_BR: break;
+                                }
+                            } else {
+                                window_curs_x += 2;
+                            }
+                            break;
+                    }
                 }
 
+                // TODO other window movements
                 break;
 
-            default:
+
+            case KEY_RESIZE: 
+                // no special handling right now  
                 break;
         }
 
-        
-
+        DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);
         DISPLAY_WINDOWS(windows, panels, _WINDOWS);
+        // other draw calls
 
         long sleep_time = FRAME_TIME - (clock() - start_time);
         if (sleep_time > 0)
