@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "unistd.h": "c",
+        "win_utils.h": "c",
+        "win_info.h": "c",
+        "ncurses_setup.h": "c",
+        "curses.h": "c",
+        "locale.h": "c",
+        "stdlib.h": "c"
+    }
+}

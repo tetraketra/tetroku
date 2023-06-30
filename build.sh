@@ -1,6 +1,6 @@
 FILES=$(find ./src/*.c -type f | tr -s '\n' ' ')
 WARNS="-W -Werror -Wextra -Wno-multichar -Wall"
-LINKS="-lncursesw"
+LINKS="-lncursesw -lpanelw"
 DEBUG="-g3"
 
 echo "Executing with..."
