@@ -1,5 +1,7 @@
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 #include <ncursesw/curses.h>
 #include <ncursesw/panel.h>
 
@@ -9,8 +11,6 @@
 
 #define MAXLINES (LINES - 1)
 #define MAXCOLS (COLS - 1)
-
-#define SPECIAL_EXIT_KEY 'q'
 
 #define CLEAR_WINDOWS(windows, num_windows)     \
     for (int i = 0; i < num_windows; i++) {     \
@@ -27,6 +27,17 @@
         window_draw_border_to(windows, i, &info_structs[i]);    \
     };
 
+#define DRAW_BOX_VALUES(windows, boxes, box_formatter, max_box_window_ind)              \
+    for (int i = 0; i < max_box_window_ind + 1; i++) {                                  \
+        char formatted_box_values[100];                                                 \
+        sprintf(                                                                        \
+            formatted_box_values, box_formatter,                                        \
+            boxes[i].cell_values[0], boxes[i].cell_values[1], boxes[i].cell_values[2],  \
+            boxes[i].cell_values[3], boxes[i].cell_values[4], boxes[i].cell_values[5],  \
+            boxes[i].cell_values[6], boxes[i].cell_values[7], boxes[i].cell_values[8]); \
+        mvwaddstr(windows[i], 0, 0, formatted_box_values);                              \
+    };
+
 enum WINDOW_ORDER {
     WO_TL,
     WO_TM,
@@ -40,6 +51,10 @@ enum WINDOW_ORDER {
     _WINDOWS,
 };
 
+typedef struct {
+    char cell_values[9];
+} BOX;
+
 int main(void) {
     // setup
     const int FPS = 60;
@@ -48,6 +63,7 @@ int main(void) {
 
     ncurses_setup(FPS);
 
+    BOX boxes[WO_BR + 1];
     WIN_INFO info_structs[_WINDOWS];
     WINDOW* windows[_WINDOWS];
     PANEL* panels[_WINDOWS];
@@ -59,7 +75,14 @@ int main(void) {
     int total_board_width = box_width*3 - 3;
     int total_board_height = box_height*3 - 3;
     
-    // sudoku boxes
+    // sudoku boxes // TODO: change this
+    char* box_formatter = "           %c %c %c    %c %c %c    %c %c %c  ";
+    char sample_values[9] = "         ";
+    for (int i = 0; i < WO_BR + 1; i ++) {
+        memcpy(boxes[i].cell_values, sample_values, 9);
+    }
+
+    // windows
     WIN_BORDER win_borders[_WINDOWS] = {
         WB_CONNECTS_RIGHT_DOWN,    WB_CONNECTS_LR_DOWN,    WB_CONNECTS_LEFT_DOWN,
         WB_CONNECTS_RIGHT_UP_DOWN, WB_CONNECTS_LR_UP_DOWN, WB_CONNECTS_LEFT_UP_DOWN,
@@ -74,9 +97,12 @@ int main(void) {
                 .border = win_borders[3*row + col]
             };
 
-            window_init_with_border(windows, 3*row + col, &info_structs[3*row + col]);
+            windows[3*row + col] = window_init(&info_structs[3*row + col]);
         }
     }
+    DRAW_BOX_VALUES(windows, boxes, box_formatter, WO_BR);
+    DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);
+    // TODO: other draw calls (maybe)
     DISPLAY_WINDOWS(windows, panels, _WINDOWS);
 
     // draw loop
@@ -95,7 +121,7 @@ int main(void) {
         CLEAR_WINDOWS(windows, _WINDOWS);
 
         switch (ch) {
-            case SPECIAL_EXIT_KEY:
+            case 'q':
                 endwin();
                 return 0;
                 break;
@@ -178,9 +204,13 @@ int main(void) {
                             break;
                     }
                 }
-
-                // TODO other window movements
                 break;
+
+            case '1' ... '9':
+                    if (active_window <= WO_BR) {
+                        boxes[active_window].cell_values[(window_curs_y - 1)*3 + ((window_curs_x - 2) / 2)] = ch;
+                        break;
+                    }
 
 
             case KEY_RESIZE: 
@@ -188,10 +218,11 @@ int main(void) {
                 break;
         }
 
+        DRAW_BOX_VALUES(windows, boxes, box_formatter, WO_BR);
         DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);
+        // TODO: other draw calls (maybe)
         DISPLAY_WINDOWS(windows, panels, _WINDOWS);
-        // other draw calls
-
+        
         long sleep_time = FRAME_TIME - (clock() - start_time);
         if (sleep_time > 0)
             usleep(sleep_time);

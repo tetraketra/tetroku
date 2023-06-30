@@ -14,6 +14,7 @@ inline void ncurses_setup(int FPS) {
     }
     start_color();
     
+    intrflush(stdscr, FALSE);
     keypad(stdscr, TRUE);
     halfdelay(1/FPS);
     cbreak();
