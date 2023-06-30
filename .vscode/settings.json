@@ -6,6 +6,7 @@
         "ncurses_setup.h": "c",
         "curses.h": "c",
         "locale.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "panel.h": "c"
     }
 }

@@ -1,5 +1,6 @@
 #include <time.h>
 #include <unistd.h>
+#include <ncursesw/curses.h>
 #include <ncursesw/panel.h>
 
 #include "ncurses_setup.h"
@@ -40,6 +41,7 @@ enum WINDOW_ORDER {
 };
 
 int main(void) {
+    // setup
     const int FPS = 60;
     const int FRAME_TIME = 1000000 / FPS;
     clock_t start_time;
@@ -54,7 +56,10 @@ int main(void) {
     int board_start_x = 0;
     int box_width = 9;
     int box_height = 5;
+    int total_board_width = box_width*3 - 3;
+    int total_board_height = box_height*3 - 3;
     
+    // sudoku boxes
     WIN_BORDER win_borders[_WINDOWS] = {
         WB_CONNECTS_RIGHT_DOWN,    WB_CONNECTS_LR_DOWN,    WB_CONNECTS_LEFT_DOWN,
         WB_CONNECTS_RIGHT_UP_DOWN, WB_CONNECTS_LR_UP_DOWN, WB_CONNECTS_LEFT_UP_DOWN,
@@ -74,7 +79,8 @@ int main(void) {
     }
     DISPLAY_WINDOWS(windows, panels, _WINDOWS);
 
-    char ch;
+    // draw loop
+    int ch;
     while (true) {
         ch = getch();
         start_time = clock();
@@ -86,12 +92,26 @@ int main(void) {
                 endwin();
                 return 0;
                 break;
+            
+            case KEY_RESIZE:
+                endwin();
+                refresh();
+                
+                if (MAXCOLS < total_board_width || MAXLINES < total_board_height) {
+                    wprintw(windows[WO_MM], "Enlarge\nconsole\nwindow!\n");
+                } else {
+                    DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);
+                    // other draw calls
+                }
+
+                break;
 
             default:
                 break;
         }
 
-        DRAW_WINDOW_BORDERS(windows, info_structs, _WINDOWS);        
+        
+
         DISPLAY_WINDOWS(windows, panels, _WINDOWS);
 
         long sleep_time = FRAME_TIME - (clock() - start_time);
