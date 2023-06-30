@@ -38,5 +38,5 @@ cat tmp.txt \
 
 rm tmp.txt
 
-chmod a+x ./bin/tetracker
+chmod a+x ./bin/tetroku
 echo "\nExecute ./bin/tetroku to start tetroku."
