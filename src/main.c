@@ -75,7 +75,7 @@ int main(void) {
     int total_board_width = box_width*3 - 3;
     int total_board_height = box_height*3 - 3;
     
-    // sudoku boxes // TODO: change this
+    // init sudoku box values
     char* box_formatter = "           %c %c %c    %c %c %c    %c %c %c  ";
     char sample_values[9] = "         ";
     for (int i = 0; i < WO_BR + 1; i ++) {
